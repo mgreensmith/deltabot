@@ -1,17 +1,21 @@
 /*
- * deltabot_servos.pde
- * Created by Matt Greensmith, 25 May 2011
- * version 0.2
- * Last edit: 25 November 2011
+ * deltabot_Arduino.ino
+ * Latest version  0.3 by Rudi Cossovich
+ * Last edit: 21 November 2016
  * This is a modified version of:
+ * http://ima.nyu.sh/animatronics/
  *
+ * deltabot_servos.pde
+ * Created by  Matt Greensmith, 25 May 2011
+ *  (https://mattgreensmith.wordpress.com/2011/11/26/making-an-arduino-controlled-delta-robot/)
+ * Based on:
  * MultipleSerialServoControl.pde
  * Created:  23 December 2009
  * Author:   Brian D. Wendt
- *   (http://principialabs.com/)
+ *  (http://principialabs.com/)
  * Version:  1.1
  * License:  GPLv3
- *   (http://www.fsf.org/licensing/)
+ *  (http://www.fsf.org/licensing/)
  *
  */
  
@@ -19,9 +23,9 @@
 #include <Servo.h> 
 
 // Physical pins where servos will be attached.
-int SERVO_1_PIN = 9;
-int SERVO_2_PIN = 10;
-int SERVO_3_PIN = 11;
+int SERVO_1_PIN = 8;
+int SERVO_2_PIN = 9;
+int SERVO_3_PIN = 10;
 
 // Create a Servo object for each servo
 Servo servo1;
@@ -122,4 +126,3 @@ void detachServos() {
   
 
   
-

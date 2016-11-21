@@ -76,12 +76,12 @@ Slider servo3;
 
 void setup() {
   //open serial connection
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort = new Serial(this, Serial.list()[2], 9600);
   
   size(300,600);
   frameRate(25);
   controlP5 = new ControlP5(this);  
-  controlP5.setColorLabel(0xff000000);
+  //controlP5.setColorLabel(0xff000000);
   controlP5.setAutoInitialization(false);
  
   // x axis text field
@@ -158,54 +158,54 @@ void draw() {
 public void controlEvent(ControlEvent theEvent) {
   if ( debug ) {
     println("controlEvent: id: "+
-          theEvent.controller().id()+"\tname: "+
-          theEvent.controller().name()+"\tlabel: "+
-          theEvent.controller().label()+"\tvalue: "+
-          theEvent.controller().value());
+          theEvent.controller().getId()+"\tname: "+
+          theEvent.controller().getName()+"\tlabel: "+
+          theEvent.controller().getLabel()+"\tvalue: "+
+          theEvent.controller().getValue());
     println("xp: " + xp + "\typ: " + yp + "\tzp: " + zp + "\tt1: " + t1 + "\tt2: " + t2 + "\tt3: " + t3);
   }
   
   copyLastData(); //back up our last positions
 
-  switch(theEvent.controller().id()) {
+  switch(theEvent.controller().getId()) {
     case (1): //x position text field has been changed
-      xp = Float.valueOf(xtext.stringValue()).floatValue();
+      xp = Float.valueOf(xtext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
 
     case (2): //y position text field has been changed
-      yp = Float.valueOf(ytext.stringValue()).floatValue();
+      yp = Float.valueOf(ytext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
     
     case (5): //z position text field has been changed
-      zp = Float.valueOf(ztext.stringValue()).floatValue();
+      zp = Float.valueOf(ztext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
    
     case (3): //xy slider has changed
-      xp = (xy.arrayValue()[0] -20) * -1;       //slider is 0,100, convert to -50,50
-      yp = (xy.arrayValue()[1] -20) * -1;  //slider is 0,100, convert to -50,50, invert
+      xp = (xy.getArrayValue()[0] -20) * -1;       //slider is 0,100, convert to -50,50
+      yp = (xy.getArrayValue()[1] -20) * -1;  //slider is 0,100, convert to -50,50, invert
       setThetasfromXYZ();
     break;
     
     case (4): //z slider
-      zp = z.value();
+      zp = z.getValue();
       setThetasfromXYZ();   
     break;
     
     case (6)://servo1 slider
-      t1 = servo1.value();
+      t1 = servo1.getValue();
       setXYZfromThetas();
     break;
     
     case (7)://servo2 slider
-      t2 = servo2.value();
+      t2 = servo2.getValue();
       setXYZfromThetas();
     break;
     
     case (8)://servo3 slider
-      t3 = servo3.value();
+      t3 = servo3.getValue();
       setXYZfromThetas();
     break;   
  
