@@ -1,4 +1,7 @@
 This is an Arduino- and Processing-controlled delta robot.
 
-More info available at http://mattgreensmith.wordpress.com/2011/11/26/making-an-arduino-controlled-delta-robot/
+deltabot_Arduino.ino
+  Latest version  0.3 by Rudi Cossovich
+  http://ima.nyu.sh/animatronics/
 
+More info available at http://mattgreensmith.wordpress.com/2011/11/26/making-an-arduino-controlled-delta-robot/
