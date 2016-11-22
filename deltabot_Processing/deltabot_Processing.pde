@@ -1,31 +1,42 @@
-/*
- * DeltaBot
- * v0.1
- * Author: Matt Greensmith
- * Date: 25 May 2011
+/* deltabot_Processing.pde - GUI for controlling a delta robot.
+ * Copyright (C) 2011 Matt Greensmith (http://mattgreensmith.net)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * All the kinematics calculations are from the superb write-up at:
  * http://forums.trossenrobotics.com/tutorials/introduction-129/delta-robot-kinematics-3276/
  */
+
 import controlP5.*;
 import processing.serial.*;
 
+//
+// Start of tuneable variables
+//
+
+// Enable console debugging
 boolean debug = false;
+
+// Index of serial port for Arduino connection.
+// Call Serial.list() for available ports.
+static int serial_port_index = 2
 
 // robot geometry
 static float e = 14;     // end effector triangle
 static float f = 29;     // base triangle
-static float re = 50;    //length of long arm
-static float rf = 14;     //length of short arm
- 
-// trigonometric constants
-static float sqrt3 = sqrt(3.0);
-static float pi = 3.141592653;    // PI
-static float sin120 = sqrt3/2.0;   
-static float cos120 = -0.5;        
-static float tan60 = sqrt3;
-static float sin30 = 0.5;
-static float tan30 = 1/sqrt3;
+static float re = 50;    // length of long arm
+static float rf = 14;    // length of short arm
 
 //servo alignment
 static int s1offset = -19;
@@ -41,6 +52,19 @@ static float min_z = -64;
 static float max_z = -36;
 static float max_t = 80;
 static float min_t = -45;
+
+//
+// End of tuneable variables.
+//
+
+// trigonometric constants
+static float sqrt3 = sqrt(3.0);
+static float pi = 3.141592653;    // PI
+static float sin120 = sqrt3/2.0;
+static float cos120 = -0.5;
+static float tan60 = sqrt3;
+static float sin30 = 0.5;
+static float tan30 = 1/sqrt3;
 
 static int precision = 100; //round to 2 decimal places
 
@@ -76,29 +100,28 @@ Slider servo3;
 
 void setup() {
   //open serial connection
-  myPort = new Serial(this, Serial.list()[0], 9600);
-  
+  myPort = new Serial(this, Serial.list()[serial_port_index], 9600);
+
   size(300,600);
   frameRate(25);
-  controlP5 = new ControlP5(this);  
-  controlP5.setColorLabel(0xff000000);
+  controlP5 = new ControlP5(this);
   controlP5.setAutoInitialization(false);
- 
+
   // x axis text field
   xtext = controlP5.addTextfield("x",170,60,50,20);
   xtext.setId(1);
   xtext.setAutoClear(false);
-  
+
   // y axis text field
   ytext = controlP5.addTextfield("y",170,100,50,20);
   ytext.setId(2);
   ytext.setAutoClear(false);
-  
+
   //z axis text field
   ztext = controlP5.addTextfield("z",170,140,50,20);
   ztext.setId(5);
   ztext.setAutoClear(false);
-  
+
   //x-y axis 2d slider
   xy = controlP5.addSlider2D("x-y-axis",20,200,200,200);
   xy.setBroadcast(false); 
@@ -109,34 +132,33 @@ void setup() {
   xy.setMaxY(40);
   xy.setArrayValue(new float[] {20, 20});
   xy.setColorValueLabel(200);  //hide the incorrect labels
- 
+
   //z azis slider
   z = controlP5.addSlider("z-axis",-64,-36,-45,230,200,15,200);
   z.setBroadcast(false); 
   z.setId(4);
   z.setSliderMode(Slider.FLEXIBLE);
-  z.setColorValueLabel(200); 
-  
+  z.setColorValueLabel(200);
+
   //servo sliders
   servo1 = controlP5.addSlider("servo1", -45, 80, 0, 20, 460, 200, 15);
   servo1.setBroadcast(false); 
   servo1.setId(6);
   servo1.setSliderMode(Slider.FLEXIBLE);
-  
+
   servo2 = controlP5.addSlider("servo2", -45, 80, 0, 20, 480, 200, 15);
-  servo2.setBroadcast(false); 
+  servo2.setBroadcast(false);
   servo2.setId(7);
   servo2.setSliderMode(Slider.FLEXIBLE);
-  
+
   servo3 = controlP5.addSlider("servo3", -45, 80, 0, 20, 500, 200, 15);
-  servo3
-  .setBroadcast(false); 
+  servo3.setBroadcast(false);
   servo3.setId(8);
   servo3.setSliderMode(Slider.FLEXIBLE);
-  
+
   //enable switch
   controlP5.addToggle("enable", false, 20, 20, 50, 20).setMode(ControlP5.SWITCH);
-  
+
   updateGuiElements();
 }
 
@@ -158,57 +180,57 @@ void draw() {
 public void controlEvent(ControlEvent theEvent) {
   if ( debug ) {
     println("controlEvent: id: "+
-          theEvent.controller().id()+"\tname: "+
-          theEvent.controller().name()+"\tlabel: "+
-          theEvent.controller().label()+"\tvalue: "+
-          theEvent.controller().value());
+          theEvent.controller().getId()+"\tname: "+
+          theEvent.controller().getName()+"\tlabel: "+
+          theEvent.controller().getLabel()+"\tvalue: "+
+          theEvent.controller().getValue());
     println("xp: " + xp + "\typ: " + yp + "\tzp: " + zp + "\tt1: " + t1 + "\tt2: " + t2 + "\tt3: " + t3);
   }
-  
+
   copyLastData(); //back up our last positions
 
-  switch(theEvent.controller().id()) {
+  switch(theEvent.controller().getId()) {
     case (1): //x position text field has been changed
-      xp = Float.valueOf(xtext.stringValue()).floatValue();
+      xp = Float.valueOf(xtext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
 
     case (2): //y position text field has been changed
-      yp = Float.valueOf(ytext.stringValue()).floatValue();
+      yp = Float.valueOf(ytext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
-    
+
     case (5): //z position text field has been changed
-      zp = Float.valueOf(ztext.stringValue()).floatValue();
+      zp = Float.valueOf(ztext.getStringValue()).floatValue();
       setThetasfromXYZ();
     break;
-   
+
     case (3): //xy slider has changed
-      xp = (xy.arrayValue()[0] -20) * -1;       //slider is 0,100, convert to -50,50
-      yp = (xy.arrayValue()[1] -20) * -1;  //slider is 0,100, convert to -50,50, invert
+      xp = (xy.getArrayValue()[0] -20) * -1;  //slider is 0,100, convert to -50,50
+      yp = (xy.getArrayValue()[1] -20) * -1;  //slider is 0,100, convert to -50,50, invert
       setThetasfromXYZ();
     break;
-    
+
     case (4): //z slider
-      zp = z.value();
-      setThetasfromXYZ();   
+      zp = z.getValue();
+      setThetasfromXYZ();
     break;
-    
+
     case (6)://servo1 slider
-      t1 = servo1.value();
+      t1 = servo1.getValue();
       setXYZfromThetas();
     break;
-    
+
     case (7)://servo2 slider
-      t2 = servo2.value();
+      t2 = servo2.getValue();
       setXYZfromThetas();
     break;
-    
+
     case (8)://servo3 slider
-      t3 = servo3.value();
+      t3 = servo3.getValue();
       setXYZfromThetas();
-    break;   
- 
+    break;
+
   }
 }
 
@@ -222,7 +244,7 @@ void setThetasfromXYZ() {
   if (yp > max_y) { yp = max_y; }
   if (zp < min_z) { zp = min_z; }
   if (zp > max_z) { zp = max_z; }
-  
+
   validPosition = true;
   //set the first angle
   float theta1 = delta_calcAngleYZ(xp, yp, zp);
@@ -317,32 +339,32 @@ void setXYZfromThetas() {
   } else {
     validPosition = false;
   }
-    
+
   if ( validPosition ) {   //we're good, make it so 
-    SetServos();  
+    SetServos();
   } else {                 //we failed, revert to our last known good positions
     xp = last_x;
     yp = last_y;
     zp = last_z;
     t1 = last_t1;
     t2 = last_t2;
-    t3 = last_t3;  
+    t3 = last_t3;
   }
-    
-  //finally update the gui elemnts
+
+  //finally update the gui elements
   updateGuiElements();
-  if ( debug ) { println("Exiting: setXYZfromThetas()"); } 
+  if ( debug ) { println("Exiting: setXYZfromThetas()"); }
 }
 
 //our stuff has changed, update the gui elements
-void updateGuiElements() { 
+void updateGuiElements() {
   if ( debug ) { println("Entering: updateGuiElements()"); } 
   //turn off the event broadcasts to stop recursion
   xtext.setBroadcast(false);
-  ytext.setBroadcast(false); 
-  ztext.setBroadcast(false); 
-  xy.setBroadcast(false); 
-  z.setBroadcast(false); 
+  ytext.setBroadcast(false);
+  ztext.setBroadcast(false);
+  xy.setBroadcast(false);
+  z.setBroadcast(false);
   servo1.setBroadcast(false);
   servo2.setBroadcast(false);
   servo3.setBroadcast(false);
@@ -359,9 +381,9 @@ void updateGuiElements() {
   
   //turn event broadcasts back on
   xtext.setBroadcast(true);
-  ytext.setBroadcast(true); 
-  ztext.setBroadcast(true); 
-  xy.setBroadcast(true); 
+  ytext.setBroadcast(true);
+  ztext.setBroadcast(true);
+  xy.setBroadcast(true);
   z.setBroadcast(true);
   servo1.setBroadcast(true);
   servo2.setBroadcast(true);
@@ -411,7 +433,7 @@ void  copyLastData() {
   last_t1 = t1;
   last_t2 = t2;
   last_t3 = t3;
-  if ( debug ) { println("Exiting: copyLastData()"); }  
+  if ( debug ) { println("Exiting: copyLastData()"); }
 }
 
 // inverse kinematics
@@ -423,9 +445,9 @@ float delta_calcAngleYZ(float x0, float y0, float z0) {
   float a = (x0*x0 + y0*y0 + z0*z0 +rf*rf - re*re - y1*y1)/(2*z0);
   float b = (y1-y0)/z0;
   // discriminant
-  float d = -(a+b*y1)*(a+b*y1)+rf*(b*b*rf+rf); 
+  float d = -(a+b*y1)*(a+b*y1)+rf*(b*b*rf+rf);
   if (d < 0) return 999; // non-existing point
   float yj = (y1 - a*b - sqrt(d))/(b*b + 1); // choosing outer point
   float zj = a + b*yj;
   return 180.0*atan(-zj/(y1 - yj))/pi + ((yj>y1)?180.0:0.0);
-} 
+}
